@@ -2,13 +2,10 @@
 import random,time,re,shelve,winsound
 from Module_01_txt import Tree
 import Module_01_txt as m1
-                #from Module_02_storehouse import *
-                #from Module_03_entries import *
 from Module_03_entries import entry_manager
 import Module_03_entries as m3
 from Module_04_fpses import Fps_general,Eqm_general
 import Module_05_sounds as m5
-                #from Module_05_sounds import *
 
 
 __version_txt__="IFAWL PVE3.2 'AEROPLANIST'"
@@ -2317,7 +2314,7 @@ al37=Al37("“星尘”非自动制导正光锥粒子流",
 
 class Al38(Al_general):#澈
 
-    description_txt = "-以牺牲为核心的新一代护盾平台，拥有比更多的模式，更灵活的进攻防守策略\n-航行日输入38获得三层锋镝，随之对自己造成两次共计两点伤害\n-任何时候，在护盾小于一时，澈将依照现有锋镝最多补充护盾至二，并消耗对应层数锋镝\n-[澄]模式|澈的正常模式|在敌我发动攻击时获得一层锋镝\n-若锋镝大于九，进入[寂]\n-[寂]模式|澈的牺牲模式|我方发动攻击时消耗一层锋镝使伤害加一，直到锋镝小于五时退出[寂]"
+    description_txt = "-以牺牲为核心的新一代护盾平台，拥有比风间浦更多的模式，比信风更灵活的进攻防守策略\n-航行日输入38获得三层锋镝，随之对自己造成两次共计两点伤害\n-任何时候，在护盾小于一时，澈将依照现有锋镝最多补充护盾至二，并消耗对应层数锋镝\n-[澄]模式|澈的正常模式|在敌我发动攻击时获得一层锋镝\n-若锋镝大于九，进入[寂]\n-[寂]模式|澈的牺牲模式|我方发动攻击时消耗一层锋镝使伤害加一，直到锋镝小于五时退出[寂]"
 
     def reset(self):
         self.state=[0,False]
