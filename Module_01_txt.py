@@ -67,19 +67,9 @@ def n_columnprint(columns:list[list[str]],di_list:tuple[int]=()):
         di = di_list
         di_list = [di for i in range(len(columns) - 1)]
 
-
     for i in range(len(columns)):
         for p in range(len(columns[i]),maxlen):
             columns[i].append("")
-            
-#    for i in range(0,len(columns[0])):
-#        if columns[0][i] != "":
-#            stri=columns[0][i]
-#        else:
-#            stri=" "*di
-#        for p in range(1,len(columns)):
-#            stri+=" "*(di-printlen(columns[p][i]))+columns[p][i]
-#        print(stri)
 
     for i in range(0,len(columns[0])):
         stri = ""

@@ -1337,7 +1337,7 @@ class Al19(Al_general):#苍穹
     def suply(self):
         global n
 
-        self.voilist_neg = ["浅草寺报告，观察到导弹已就位"] if q_is_missile() else ["浅草寺报告，观察到粒子匣已就位"]
+        self.voilist_neg = [f"浅草寺报告，观察到{get_q_platform()}已就位"]
 
         if self.state>0:
             self.state-=1
@@ -2353,7 +2353,7 @@ class Al38(Al_general):#澈
                 random.choice(
                     [
                         "飞快地下着雨一样的血……",
-                        "丛林中的暴风雨，正在酝酿……"
+                        "暴风雨正在酝酿……"
                     ]
                 )
             )
@@ -2390,6 +2390,7 @@ class Particle_cannon_manager:
     
     def adding(self,num:int):
         self.plies += num
+        n[1] -= num
 
     def check_if_boom(self):
         if self.plies != 0 and probability(0.2*self.plies):
@@ -2403,7 +2404,31 @@ p_c_manager = Particle_cannon_manager()
 
 class Machine_gun_manager:
     
-    pass
+    def shoot(self,ammo:int):
+        count_shot = ammo*10
+        while count_shot > 0:
+            print(f"[机炮]发射中|剩余{count_shot}梭")
+            count_shot -= 1
+            if probability(0.1):
+                print("[机炮]" + 
+                    random.choice(
+                        [
+                            "攻击命中！",
+                            "护盾破碎！",
+                            "判定摧毁！"
+                        ]
+                    ) +
+                    "------------+++[命中确认]+++------------"
+                )
+                player_atkplus(1)
+            else:
+                print("[机炮]未命中！--------[未能命中]---------")
+
+    def shoot_now(self):
+        if n[1] > 2:
+            self.shot(2)
+        else:
+            self.shot(n[1])
 
 m_g_manager = Machine_gun_manager()
 
@@ -4214,12 +4239,12 @@ def player_cureplus(cure:int,al21_shian=False,if_dengtayimie=True):
     else:
         n[0]+=cure
 
-def itemprint(topic:str,it:dict,l:int = 20,r:int = 6):#空间站仓库打印
+def itemprint(topic:str,it:dict[str,int],l:int = 20,r:int = 6):#仓库打印
 
     title = topic.center(2*l+r-4,"-")
     body = []
     for k,v in it.items():
-        body.append(k.ljust(l,"·")+str(v).rjust(r))
+        body.append(k.ljust(l,"·")+f"{int(v)}".rjust(r))
 
     Tree(title,body).treeprint()
 
@@ -4640,7 +4665,7 @@ def surroundings_suggestion_print() :#战场环境辅助提示器
                 suggestion_list)
     
 
-def sitprint(is_normal):#战场打印
+def sitprint(is_normal = True):#战场打印
     global mode
     if is_normal:
         print("%s指挥官，"%username,"今天是战线展开的第",days,"天。",auto_pilot.to_do_list)
@@ -4699,10 +4724,14 @@ def sitprint(is_normal):#战场打印
     al38.printself()
     if not is_normal:
         print("(^*"*n[1])        
-    elif q_is_missile():
-        print("[]"*n[1])
     else:
-        print("|| "*n[1])
+        print(
+            {
+                "导弹":"[]",
+                "粒子炮":"|| ",
+                "机炮":"''"
+            }[get_q_platform()]*n[1]
+        )
     print()
 
     al4.printself()
@@ -4955,16 +4984,6 @@ def faker_vs_bin_main():
     if m1.inputplus("是否重新选择词条？[y]是") == "y":
         entry_manager.ask(username)
 
-        
-def q_is_missile():
-    if choi[3] != -1 :
-        if globals()[f"al{choi[3]}"].tag["武器平台"] == "导弹":
-            return True
-        else:
-            return False
-    else:
-        return True
-
 def is_contra() -> bool :
     if choi[3] < 0 or choi[5] < 0:
         return False
@@ -4976,6 +4995,11 @@ def is_contra() -> bool :
         return True
     else:
         return False
+    
+def get_q_platform() -> Literal["导弹","粒子炮","机炮"]:
+    if choi[3] == -1:
+        return "导弹"
+    return globals()[f"al{choi[3]}"].tag["武器平台"]
 
 def operation_main():#主操作函数 
 
@@ -5067,16 +5091,17 @@ def operation_main():#主操作函数
                     al8.attack()
                 elif al15.state != 0:#暴雨
                     m1.printplus("[暴雨]一般发射器离线。已为您新建一枚导弹。",0.3)
-                    n[1]+=1
+                    n[1] += 1
                 else:
-                    if q_is_missile():
+                    if get_q_platform() == "导弹":
                         player_atkplus(1)
                         n[1] -= 1
-                    else:
+                    elif get_q_platform() == "粒子炮":
                         p_c_manager.adding(1)
-                        n[1] -= 1
-                m1.printplus(voi_1[random.randint(0,2)],0.3)
-                time.sleep(0.4)
+                    elif get_q_platform() == "机炮":
+                        m_g_manager.shoot_now()
+                    m1.printplus(voi_1[random.randint(0,2)],0.3)
+                    time.sleep(0.4)
             else:
                 m1.printplus("[武器甲板]弹药不足",0.3)
                 n[1]+=1
