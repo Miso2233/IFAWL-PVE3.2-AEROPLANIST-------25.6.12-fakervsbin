@@ -71,6 +71,7 @@ allenskin=["","","",
            "“西岭”高速传统近防炮防空体系",
            "“星尘”非自动制导正光锥粒子流",
            "“澈”高牺牲护盾锐化改装套件",
+           "“失落民谣”多轨道联动速射机炮",
            "无战术配置",
            "无生存维修站",
            "无主武器"]
@@ -85,7 +86,8 @@ al_sho_title_cn = [
     "24/q 大奶油","25/w 贾氏","26/e 眠雀","27/e 瞳猫",
     "28/q 鹘鸮","29/w 酒师","30/q 湾铃","31/w 白鲟",
     "32/e 小狼","33/q 蛊","34/w 风间浦","35/e 青鹄",
-    "36/e 西岭","37/q 星尘","38/w 澈","无战术","无生存","无武器"
+    "36/e 西岭","37/q 星尘","38/w 澈","39/q 民谣",
+    "无战术","无生存","无武器"
 ]
 
 al_sho_title_en = [
@@ -98,7 +100,7 @@ al_sho_title_en = [
     "24/q The·Milky","25/w Ajax","26/e Sparrow","27/e Iris",
     "28/q Cushat","29/w Brewer","30/q Bay&Convallaria","31/w Sturgeon",
     "32/e Provence","33/q Deadlytoxic","34/w Windside","35/e Bengalensis",
-    "36/e Dawnhill","37/q Infinity","38/w Sacrificer","无战术","无生存","无武器"
+    "36/e Dawnhill","37/q Infinity","38/w Sacrificer","39/q Folker","无战术","无生存","无武器"
 ]
 
 kwords = ["f","giveup","r"]
@@ -2037,20 +2039,18 @@ al33=Al33("“蛊”核同质异能素伽马射线炮",
 
 class Al34(Al_general):#风间浦
 
-    description_txt = "-双模式防御系统，提供从保守到激进的多种生存方案\n-以保守模式进入对局。在该模式下，所有回盾有概率加一。没有护盾时，这一概率上升至100%\n-输入34进入激进模式。这一模式下，舰船将不会死亡，持续至往后三个敌方日\n-激进模式结束后，回复与激进模式内受到总伤害等量的护盾，并进入五个航行日的冷却\n-[烈风]在进入激进模式的瞬间，对敌方造成1伤害"
+    description_txt = "-双模式防御系统，提供从保守到激进的多种生存方案\n-以保守模式进入对局。在该模式下，所有回盾有概率加一并追加一枚导弹。没有护盾时，这一概率上升至100%\n-输入34进入激进模式。这一模式下，舰船将不会死亡，持续至往后三个敌方日\n-激进模式结束后，回复与激进模式内受到总伤害等量的护盾，并进入五个航行日的冷却\n-[烈风]在进入激进模式的瞬间，对敌方造成1伤害"
     state = [0,0]
 
     def reset(self):
         self.state = [0,0]
 
-    def check_if_promote(self,cure:int) -> int :
+    def check_if_promote(self,cure:int,) -> int :
         if 34 not in choi:
             return cure
-        if self.state[0] == 0 and probability(0.5):
+        if self.state[0] == 0 and (probability(0.5) or n[0] == 0):
             self.report("大规模充能就绪！")
-            return cure + 1
-        elif self.state[0] == 0 and n[0] == 0:
-            self.report("大规模充能就绪！")
+            n[1] += 1
             return cure + 1
         else:
             return cure
@@ -2178,7 +2178,7 @@ al35=Al35("“青鹄”时空连续体空洞构造反应堆",
 
 class Al36(Al_general):#西岭
 
-    description_txt = "-极其传统的大口径速射防空炮，可以自动防空拦截敌方导弹，也可以用于主动进攻\n-默认模式为自动防空模式。有概率拦截敌方的普通攻击\n-输入36切换至主动进攻模式。每个航行日获得一次弹雨扫射机会，共四十枚速射弹药，长按enter发射"
+    description_txt = "-极其传统的大口径速射防空炮，可以自动防空拦截敌方导弹，也可以用于主动进攻\n-默认模式为自动防空模式。有概率拦截敌方的普通攻击\n-输入36切换至主动进攻模式。每个航行日获得一次弹雨扫射机会，共四十枚速射弹药连续打出，命中可造成1伤害"
 
     def check_if_protect(self,atk):
         if 36 not in choi or self.state == 1 :
@@ -2375,6 +2375,18 @@ al38=Al38("“澈”高牺牲护盾锐化改装套件",
             {'联邦信用点': 0},
             {"出身":"浅草寺重工"})
 
+class Al39(Al_general):#失落民谣
+
+    description_txt = ""
+
+al39=Al39("“失落民谣”多轨道联动速射机炮",
+            [],
+            [],
+            [],
+            {'联邦信用点': 0},
+            {"出身":"浅草寺重工",
+             "武器平台":"机炮"})
+
 class Particle_cannon_manager:
 
     plies = 0
@@ -2404,12 +2416,18 @@ p_c_manager = Particle_cannon_manager()
 
 class Machine_gun_manager:
     
-    def shoot(self,ammo:int):
+    def shoot(self,ammo:int,hit_rate:float=0.1):
+        '''
+        机炮平台的基本攻击函数
+        扣弹没有内置在其中
+        射弹总量是ammo的十倍
+        命中率默认0.1
+        '''
         count_shot = ammo*10
         while count_shot > 0:
             print(f"[机炮]发射中|剩余{count_shot}梭")
             count_shot -= 1
-            if probability(0.1):
+            if probability(hit_rate):
                 print("[机炮]" + 
                     random.choice(
                         [
@@ -2425,10 +2443,11 @@ class Machine_gun_manager:
                 print("[机炮]未命中！--------[未能命中]---------")
 
     def shoot_now(self):
-        if n[1] > 2:
-            self.shot(2)
-        else:
-            self.shot(n[1])
+        """
+        平A用的函数
+        扣弹内置
+        """
+        self.shoot(1); n[1] -= 1
 
 m_g_manager = Machine_gun_manager()
 
@@ -4850,7 +4869,12 @@ def choiprintplus(a):#主要装备选择
                     "粒子炮平台",
                     "使用舰载大功率粒子炮进行攻击",
                     "#战术|#延迟爆炸|#可暴击"
-                ).linelist()
+                ).linelist(),
+                Tree(
+                    "机炮平台",
+                    "使用甲板大口径自动机炮攻击",
+                    "#冲击感|#赌博式战术|#高频伤害"
+                ).linelist(),
             ],
             50
         )
@@ -5032,16 +5056,43 @@ def operation_main():#主操作函数
         m1.printplus(f"自动战斗接管中·当前操作：{i}")
         m1.printplus("自动战斗数据录入完成·自动战斗即将开始")
 
-    if choi[3] != -1 :
-        if globals()[f"al{choi[3]}"].tag["武器平台"] == "导弹":
-            missile = True
-        else:
-            missile = False
-    else:
-        missile = True
+    voi_0 = {
+        "导弹":[
+            f"[导弹]{username}指挥官,导弹已挂置在左舷",
+            "[导弹]导弹已移入发射井",
+            "[导弹]热能弹头预热完毕"
+        ],
+        "粒子炮":[
+            f"[粒子炮]{username}指挥官,小型粒子匣已装载",
+            "[粒子炮]粒子炮正在G6甲板待命",
+            "[粒子炮]粒子炮正在B3甲板待命"
+        ],
+        "机炮":[
+            f"[机炮]{username}指挥官,对舰重型弹链装配中",
+            "[机炮]机炮弹链已就位",
+            "[机炮]炮管冷却完毕，弹链就绪"
+        ]
+    }[get_q_platform()]
 
-    voi_0=[f"[导弹]{username}指挥官,导弹已挂置在左舷","[导弹]导弹已移入发射井","[导弹]热能弹头预热完毕"] if missile else [f"[粒子炮]{username}指挥官,小型粒子匣已装载","[粒子炮]粒子炮正在G6甲板待命","[粒子炮]粒子炮正在B3甲板待命"]
-    voi_1=["[导弹]fox1，导弹确认命中","[导弹]fox2，确认穿透敌方护盾","[导弹]fox3，敌方结晶护盾已融化"] if missile else [f"[粒子炮]注意十二点钟闪光！Attention,stick！","[粒子炮]splash1，粒子确认粘附","[粒子炮]splash2，粒子炮发射","[粒子炮]splash3，小心闪光"]
+    voi_1 = {
+        "导弹":[
+            "[导弹]fox1，导弹确认命中",
+            "[导弹]fox2，确认穿透敌方护盾",
+            "[导弹]fox3，敌方结晶护盾已融化"
+        ],
+        "粒子炮":[
+            "[粒子炮]注意十二点钟闪光！Attention,stick！",
+            "[粒子炮]splash1，粒子确认粘附",
+            "[粒子炮]splash2，粒子炮发射",
+            "[粒子炮]splash3，小心闪光"
+        ],
+        "机炮":[
+            "[机炮]guns1，火力输出完毕",
+            "[机炮]guns2，弹道检查中",
+            "[机炮]guns3，炮管正在更换"
+        ]
+    }[get_q_platform()]
+
     voi_2=["结晶化护盾已生成","已联络最近的电磁屏障","拮抗力场正在凝固"]
     if i == "q":
         i=choi[3]
@@ -5100,7 +5151,7 @@ def operation_main():#主操作函数
                         p_c_manager.adding(1)
                     elif get_q_platform() == "机炮":
                         m_g_manager.shoot_now()
-                    m1.printplus(voi_1[random.randint(0,2)],0.3)
+                    m1.printplus(random.choice(voi_1),0.3)
                     time.sleep(0.4)
             else:
                 m1.printplus("[武器甲板]弹药不足",0.3)
